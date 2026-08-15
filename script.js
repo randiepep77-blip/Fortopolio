@@ -1,146 +1,265 @@
-// =====================================================
-// MOBILE NAVIGATION
-// =====================================================
+let cart = [];
 
-const menuToggle = document.getElementById("menuToggle");
-const navMenu = document.getElementById("navMenu");
 
-menuToggle.addEventListener("click", () => {
-    navMenu.classList.toggle("show");
+// ===============================
+// FORMAT RUPIAH
+// ===============================
 
-    const icon = menuToggle.querySelector("i");
+function formatRupiah(number) {
 
-    if (navMenu.classList.contains("show")) {
-        icon.classList.remove("fa-bars");
-        icon.classList.add("fa-xmark");
-    } else {
-        icon.classList.remove("fa-xmark");
-        icon.classList.add("fa-bars");
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+    }).format(number);
+
+}
+
+
+// ===============================
+// ADD TO CART
+// ===============================
+
+function addToCart(name, price) {
+
+    cart.push({
+        name: name,
+        price: price
+    });
+
+    updateCart();
+
+    alert(name + " berhasil ditambahkan ke keranjang!");
+}
+
+
+// ===============================
+// UPDATE CART
+// ===============================
+
+function updateCart() {
+
+    const cartCount =
+        document.getElementById("cartCount");
+
+    const cartItems =
+        document.getElementById("cartItems");
+
+    const cartTotal =
+        document.getElementById("cartTotal");
+
+
+    cartCount.textContent = cart.length;
+
+
+    cartItems.innerHTML = "";
+
+
+    let total = 0;
+
+
+    if (cart.length === 0) {
+
+        cartItems.innerHTML = `
+            <p style="color:#777">
+                Keranjang masih kosong.
+            </p>
+        `;
+
     }
-});
 
 
-// Close menu after clicking navigation
-document.querySelectorAll(".nav-menu a").forEach(link => {
+    cart.forEach((item, index) => {
 
-    link.addEventListener("click", () => {
-
-        navMenu.classList.remove("show");
-
-        const icon = menuToggle.querySelector("i");
-
-        icon.classList.remove("fa-xmark");
-        icon.classList.add("fa-bars");
-
-    });
-
-});
+        total += item.price;
 
 
-// =====================================================
-// ACTIVE NAVIGATION
-// =====================================================
+        cartItems.innerHTML += `
 
-const sections = document.querySelectorAll("section");
-const navLinks = document.querySelectorAll(".nav-menu a");
+            <div class="cart-item">
 
-window.addEventListener("scroll", () => {
+                <div>
 
-    let current = "";
+                    <strong>
+                        ${item.name}
+                    </strong>
 
-    sections.forEach(section => {
+                    <br>
 
-        const sectionTop = section.offsetTop - 150;
-        const sectionHeight = section.clientHeight;
+                    <small>
+                        ${formatRupiah(item.price)}
+                    </small>
 
-        if (
-            window.scrollY >= sectionTop &&
-            window.scrollY < sectionTop + sectionHeight
-        ) {
-            current = section.getAttribute("id");
-        }
+                </div>
+
+                <button
+                    onclick="removeFromCart(${index})"
+                    style="
+                        background:none;
+                        border:none;
+                        color:#ff5555;
+                        cursor:pointer;
+                    "
+                >
+                    Hapus
+                </button>
+
+            </div>
+
+        `;
 
     });
 
-    navLinks.forEach(link => {
 
-        link.classList.remove("active");
+    cartTotal.textContent =
+        formatRupiah(total);
+}
 
-        if (link.getAttribute("href") === `#${current}`) {
-            link.classList.add("active");
-        }
+
+// ===============================
+// REMOVE
+// ===============================
+
+function removeFromCart(index) {
+
+    cart.splice(index, 1);
+
+    updateCart();
+
+}
+
+
+// ===============================
+// OPEN CART
+// ===============================
+
+function openCart() {
+
+    document
+        .getElementById("cartModal")
+        .classList.add("active");
+
+    updateCart();
+
+}
+
+
+// ===============================
+// CLOSE CART
+// ===============================
+
+function closeCart() {
+
+    document
+        .getElementById("cartModal")
+        .classList.remove("active");
+
+}
+
+
+// ===============================
+// CHECKOUT
+// ===============================
+
+function checkout() {
+
+    if (cart.length === 0) {
+
+        alert("Keranjang masih kosong!");
+
+        return;
+    }
+
+
+    let message =
+        "Halo, saya ingin membeli:%0A%0A";
+
+
+    let total = 0;
+
+
+    cart.forEach((item) => {
+
+        message +=
+            "• " +
+            item.name +
+            " - " +
+            formatRupiah(item.price) +
+            "%0A";
+
+        total += item.price;
 
     });
 
-});
+
+    message +=
+        "%0ATotal: " +
+        formatRupiah(total);
 
 
-// =====================================================
-// CONTACT FORM
-// =====================================================
+    // GANTI NOMOR INI
+    const phone =
+        "6280000000000";
 
-const contactForm = document.getElementById("contactForm");
 
-contactForm.addEventListener("submit", (event) => {
-
-    event.preventDefault();
-
-    const name = document.getElementById("name").value;
-
-    alert(
-        `Terima kasih, ${name}! Pesan kamu berhasil diterima.`
+    window.open(
+        "https://wa.me/" +
+        phone +
+        "?text=" +
+        message,
+        "_blank"
     );
 
-    contactForm.reset();
-
-});
+}
 
 
-// =====================================================
-// CURRENT YEAR
-// =====================================================
+// ===============================
+// FILTER PRODUCTS
+// ===============================
 
-document.getElementById("year").textContent =
-    new Date().getFullYear();
+function filterProducts(category) {
+
+    const products =
+        document.querySelectorAll(".product");
 
 
-// =====================================================
-// SIMPLE SCROLL ANIMATION
-// =====================================================
+    products.forEach(product => {
 
-const animatedElements = document.querySelectorAll(
-    ".skill-card, .project-card, .info-card"
-);
+        if (
+            category === "all" ||
+            product.dataset.category === category
+        ) {
 
-const observer = new IntersectionObserver(
-    entries => {
+            product.style.display = "block";
 
-        entries.forEach(entry => {
+        } else {
 
-            if (entry.isIntersecting) {
+            product.style.display = "none";
 
-                entry.target.style.opacity = "1";
-                entry.target.style.transform = "translateY(0)";
+        }
 
-                observer.unobserve(entry.target);
+    });
 
-            }
 
+    document
+        .getElementById("products")
+        .scrollIntoView({
+            behavior: "smooth"
         });
 
-    },
-    {
-        threshold: 0.15
-    }
-);
+}
 
 
-animatedElements.forEach(element => {
+// ===============================
+// CLOSE MODAL WHEN CLICK OUTSIDE
+// ===============================
 
-    element.style.opacity = "0";
-    element.style.transform = "translateY(25px)";
-    element.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+document
+    .getElementById("cartModal")
+    .addEventListener("click", function(e) {
 
-    observer.observe(element);
+        if (e.target === this) {
+            closeCart();
+        }
 
-});
+    });
